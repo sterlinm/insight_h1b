@@ -12,6 +12,9 @@ settings.json
 # Ignore test folder with large CSVs
 insight_testsuite/tests/test_large
 
+# Ignore src/data
+src/data
+
 # C extensions
 *.so
 

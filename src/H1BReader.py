@@ -22,10 +22,16 @@ class H1BReader:
         except FileNotFoundError:
             raise FileNotFoundError(f"{self.file_path} does not exist")
 
+        # Valid occupation, status, and state column names
+        # These are ordered such that if there are duplicates the first found is used
+        self._possible_occupation_cols = ["SOC_NAME","LCA_CASE_SOC_NAME","OCCUPATIONAL_TITLE"]
+        self._possible_status_cols = ["CASE_STATUS", "STATUS", "APPROVAL_STATUS"]
+        self._possible_state_cols = ["WORKSITE_STATE", "LCA_CASE_WORKLOC1_STATE", "WORK_LOCATION_STATE1", "STATE_1"]
+
         # Special Columns
-        self._occupation_col = self._find_column(["SOC_NAME","LCA_CASE_SOC_NAME","OCCUPATIONAL_TITLE"])
-        self._status_col = self._find_column(["CASE_STATUS", "STATUS", "APPROVAL_STATUS"])
-        self._state_col = self._find_column(["WORKSITE_STATE", "LCA_CASE_WORKLOC1_STATE", "WORK_LOCATION_STATE1", "STATE_1"])
+        self._occupation_col = self._find_column(self._possible_occupation_cols)
+        self._status_col = self._find_column(self._possible_status_cols)
+        self._state_col = self._find_column(self._possible_state_cols)
 
     def __repr__(self):
         return f'H1BReader("{self._file_path}")'
@@ -104,16 +110,34 @@ class H1BReader:
                 case_status = row[status_idx].upper()
                 if case_status=="CERTIFIED":
                     for column, column_idx in zip(columns, column_idxs):
-                        column_value = row[column_idx].upper()
+                        try:
+                            column_value = row[column_idx].upper()
+                        except IndexError:
+                            raise IndexError('Input file is malformed.')
                         colCounter[column].update([column_value])
             
             # Update self.counters with calculated counts
             self._counters.update(colCounter)
 
     def get_top_counts(self, column, n=10):
-        if column not in self.counters:
-            self.calculate_counts([column])
-        top_n = sorted(self.counters[column].items(), key = lambda count: (-count[1], count[0]))[:n]
+
+        # Validate n
+        if type(n) is not int:
+            raise TypeError('n must be an integer')
+        elif n<0:
+            raise ValueError('n must be greater than or equal to zero')
+
+        # Validate column
+        if type(column) is not str:
+            raise TypeError('column must be a string')
+        
+        # Calculate counts for column (only done if not already calculated)
+        self.calculate_counts(column)
+        
+        # Return top n from appropriate counter
+        # Sort by count, then key value
+        top_n = sorted(self.counters[column].items(),
+                       key = lambda count: (-count[1], count[0]))[:n] # return up to n items
         return top_n
     
     def generate_report(self, column, file_name, n=10, column_label="TOP", sep = ";"):

@@ -15,9 +15,12 @@ class H1BReader:
         self.counters = {}
 
         # Get Header from file
-        with open(self.file_path, 'r') as h1b_data:
-            reader = csv.reader(h1b_data, delimiter=self._sep)
-            self._header = [col.upper() for col in next(reader)]
+        try:
+            with open(self.file_path, 'r') as h1b_data:
+                reader = csv.reader(h1b_data, delimiter=self._sep)
+                self._header = [col.upper() for col in next(reader)]
+        except FileNotFoundError:
+            raise FileNotFoundError(f"{self.file_path} does not exist")
 
         # Special Columns
         self._occupation_col = self._find_column(["SOC_NAME","LCA_CASE_SOC_NAME","OCCUPATIONAL_TITLE"])

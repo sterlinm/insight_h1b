@@ -12,7 +12,7 @@ class H1BReader:
 
         self._file_path = file_path
         self._sep = ";"
-        self.counters = {}
+        self._counters = {}
 
         # Get Header from file
         try:
@@ -49,6 +49,14 @@ class H1BReader:
     @property
     def state_col(self):
         return self._state_col
+    
+    @property
+    def sep(self):
+        return self._sep
+
+    @property
+    def counters(self):
+        return self._counters
 
     def _find_column(self, possible_columns):
 
@@ -61,6 +69,13 @@ class H1BReader:
         return found_columns[0]
     
     def calculate_counts(self, columns):
+
+        # Validate type of columns - must be str or list of str
+        if type(columns) is not list:
+            columns = [columns]
+        if any([type(c) is not str for c in columns]):
+            raise ValueError('Columns must be string or list of strings')
+
         with open(self.file_path, newline='') as h1b_data:
             reader = csv.reader(h1b_data, delimiter=self._sep)
             next(reader) # skip header
@@ -93,7 +108,7 @@ class H1BReader:
                         colCounter[column].update([column_value])
             
             # Update self.counters with calculated counts
-            self.counters.update(colCounter)
+            self._counters.update(colCounter)
 
     def get_top_counts(self, column, n=10):
         if column not in self.counters:

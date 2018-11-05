@@ -20,7 +20,7 @@ class H1BReader:
         # Special Columns
         self._occupation_col = self._find_column(["SOC_NAME","LCA_CASE_SOC_NAME","OCCUPATIONAL_TITLE"])
         self._status_col = self._find_column(["CASE_STATUS", "STATUS", "APPROVAL_STATUS"])
-        self._state_col = self._find_column(["EMPLOYER_STATE", "LCA_CASE_EMPLOYER_STATE", "STATE"])
+        self._state_col = self._find_column(["WORKSITE_STATE", "WORK_LOCATION_STATE1", "STATE_1"])
 
     
 
@@ -34,6 +34,18 @@ class H1BReader:
     @property
     def header(self):
         return self._header
+
+    @property
+    def occupation_col(self):
+        return self._occupation_col
+    
+    @property
+    def status_col(self):
+        return self._status_col
+    
+    @property
+    def state_col(self):
+        return self._state_col
 
     def _find_column(self, possible_columns):
         try:
@@ -85,10 +97,10 @@ class H1BReader:
             file_name="./output/top_10_occupations.txt",
             column_label="TOP_OCCUPATIONS"):
         
-        self.generate_report(self._occupation_col, file_name, n=n, column_label=column_label)
+        self.generate_report(self.occupation_col, file_name, n=n, column_label=column_label)
 
     def generate_state_report(self,n = 10,
             file_name="./output/top_10_states.txt",
             column_label="TOP_STATES"):
         
-        self.generate_report(self._state_col, file_name, n=n, column_label=column_label)
+        self.generate_report(self.state_col, file_name, n=n, column_label=column_label)
